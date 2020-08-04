@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <title>dns配置</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-weight: "Microsoft YaHei";
+            font-size: 12px;
+        }
+
+        .btn {
+            padding: 20px 0;
+        }
+
+        .btn a,
+        a.del,
+        a.copy {
+            display: inline-block;
+            padding: 0 20px;
+            height: 24px;
+            line-height: 24px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .btn a.add,
+        .btn a.save,
+        a.copy {
+            border: 1px solid #4A4;
+            color: #4A4;
+        }
+
+        .btn a.add:hover,
+        .btn a.save:hover,
+        a.copy:hover {
+            background-color: #4A4;
+            color: #FFF;
+        }
+
+        .btn a.reset,
+        a.del {
+            border: 1px solid #C44;
+            color: #C44;
+        }
+
+        .btn a.reset:hover,
+        a.del:hover {
+            background-color: #C44;
+            color: #FFF;
+        }
+
+        table {
+            width: 600px;
+            margin: 0 auto;
+        }
+
+        input {
+            padding: 0 10px;
+            width: 200px;
+            height: 30px;
+            line-height: 30px;
+            border: 1px solid #CCC;
+        }
+
+        input.error {
+            border-color: #C00;
+        }
+
+        input.error::-webkit-input-placeholder {
+            color: #C00;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <td colspan="2" class="btn">
+                    <a href="javascript:void(0);" class="add">Add</a>
+                    <a href="javascript:void(0);" class="save">Save</a>
+                    <a href="javascript:void(0);" class="reset">Reset</a>
+                    <a href="javascript:void(0);" class="copy">Copy to Clipboard</a>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td><input type="text" name="ip" placeholder="搜索ip" /></td>
+                <td><input type="text" name="domain" placeholder="搜索域名" /></td>
+                <td></td>
+            </tr>
+        </thead>
+        <tbody class="list">
+
+        </tbody>
+    </table>
+    <script type="text/javascript" src="js/jq_183.js"></script>
+    <script type="text/javascript" src="js/clipboard.min.js"></script>
+    <script type="text/javascript">
+        $.ajax({
+            url: '/dns/host/list',
+            type: "GET",
+            dataType: "json",
+            success: function (msg) {
+                var data = msg;
+
+                function deepClone(obj) {
+                    var copy
+                    // 处理3种基础类型，和null、undefined
+                    if (obj === null || typeof obj !== 'object') return obj
+                    // 处理日期
+                    if (obj instanceof Date) {
+                        copy = new Date()
+                        copy.setTime(obj.getTime())
+                        return copy
+                    }
+                    // 处理数组
+                    if (obj instanceof Array) {
+                        copy = []
+                        for (var i = 0, len = obj.length; i < len; i++) {
+                            copy[i] = deepClone(obj[i])
+                        }
+                        return copy
+                    }
+                    // 处理函数
+                    if (obj instanceof Function) {
+                        copy = function () {
+                            return obj.apply(this, arguemnts)
+                        }
+                        return copy
+                    }
+                    // 处理对象
+                    if (obj instanceof Object) {
+                        copy = {}
+                        for (var attr in obj) {
+                            if (obj.hasOwnProperty(attr)) copy[attr] = deepClone(obj[attr])
+                        }
+                        return copy
+                    }
+                    throw new Error("Unable to copy obj as type isn't suported" + obj.constructor.name)
+                }
+
+                var beforeData = deepClone(data);
+                var myData = deepClone(data);
+
+                function isStatus() {
+                    //校验IP
+                    var reg_ip = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+                    var reg_ipv6 = /^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/;
+                    //校验域名
+                    var reg_domain = /^(?=^.{3,255}$)(http(s)?:\/\/)?(www\.)?[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:\d+)*(\/\w+\.\w+)*$/;
+                    var status = true;
+                    $('.list tr').each(function (i) {
+                        var k = $(this).find('input').eq(0).val();
+                        var v = $(this).find('input').eq(1).val();
+                        if (!reg_ip.test(k) && !reg_ipv6.test(k)) {
+                            $(this).find('input').eq(0).addClass('error');
+                            status = false;
+                        }
+                        if (!reg_domain.test(v)) {
+                            $(this).find('input').eq(1).addClass('error');
+                            status = false;
+                        }
+                    });
+                    return status;
+                }
+
+                function getData(v1, v2) {
+                    var oTr = '';
+                    for (var i = 0; i < myData.length; i++) {
+                        var t = myData[i].t;
+                        var ip = myData[i].ip;
+                        var domain = myData[i].domain;
+                        if (new RegExp(v1).test(ip) && new RegExp(v2).test(domain)) {
+                            // if(reg_ip.test(ip) && reg_domain.test(domain)){
+                            oTr += '<tr t="' + t + '">';
+                            oTr += '    <td><input type="text" name="ip" value="' + ip + '" /></td>';
+                            oTr += '    <td><input type="text" name="domain" value="' + domain + '" /></td>';
+                            oTr += '    <td><a href="javascript:void(0);" class="del">Delete</a></td>';
+                            oTr += '</tr>';
+                        }
+                    }
+                    $('.list').html(oTr);
+                }
+
+                getData();
+
+                var bindName = (navigator.userAgent.indexOf("MSIE") != -1) ? 'propertychange' : 'input';
+
+                var searchInput = $('thead input');
+                searchInput.on(bindName, function () {
+                    var status = isStatus();
+                    if (!status) {
+                        $(this).val('');
+                        return false;
+                    } else {
+                        var val = $(this).val().replace(/%|"|'|\\|\*|\//g, '');
+                        $(this).val(val);
+                        var ip = searchInput.eq(0).val();
+                        var domain = searchInput.eq(1).val();
+                        getData(ip, domain);
+                    }
+                });
+
+                //add
+                $('.add').on('click', function () {
+                    var status = isStatus();
+                    if (!status) {
+                        alert('请完善信息！');
+                        return false;
+                    } else {
+                        var t = (new Date()).getTime().toString();
+                        var str = '';
+                        str += '<tr t="' + t + '" class="addNull">';
+                        str += '    <td><input type="text" name="ip" placeholder="请输入Ip" /></td>';
+                        str += '    <td><input type="text" name="domain" placeholder="请输入域名" /></td>';
+                        str += '    <td><a href="javascript:void(0);" class="del">Delete</a></td>';
+                        str += '</tr>';
+                        $('.list').prepend(str);
+                    }
+                });
+
+                //save
+                $('.save').on('click', function () {
+                    var status = isStatus();
+                    if (!status) {
+                        alert('请完善信息！');
+                        return false;
+                    } else {
+                        console.log(myData);
+                        $.ajax({
+                            // url: 'http://localhost:8080/dns/host/update',
+                            url: '/dns/host/update',
+                            type: "POST",
+                            data: { "host": JSON.stringify(myData) },
+                            //dataType:"json",
+                            success: function (msg) {
+                                alert(msg);
+                            }
+                        });
+                    }
+                });
+
+                //编辑信息
+                $('.list').on(bindName, 'input', function () {
+                    if ($(this).hasClass('error')) {
+                        if ($(this).val()) {
+                            $(this).removeClass('error');
+                        }
+                    }
+                    var oTr = $(this).closest('tr');
+                    var t = oTr.attr('t');
+                    var newVal = $(this).val();
+                    var otherVal = $(this).parent().siblings().children('input').val()
+                    var name = $(this).attr('name');
+                    var index = myData.findIndex(function (fruit) {
+                        return fruit.t === t
+                    });
+                    if (newVal && otherVal) {
+                        if (oTr.hasClass('addNull')) {
+                            oTr.removeClass('addNull');
+                            var obj = new Object;
+                            obj.t = t;
+                            obj.ip = oTr.find('input[name = ip]').val();
+                            obj.domain = oTr.find('input[name = domain]').val();
+                            myData.push(obj);
+                        } else {
+                            myData[index][name] = newVal;
+                        }
+                    }
+                });
+
+                //reset
+                $('.reset').on('click', function () {
+                    myData = deepClone(beforeData);
+                    searchInput.val('');
+                    getData();
+                });
+
+                //del
+                $('.list').on('click', '.del', function () {
+                    var oTr = $(this).closest('tr');
+                    var t = oTr.attr('t');
+                    var index = myData.findIndex(function (fruit) {
+                        return fruit.t === t
+                    });
+                    if (index != -1) {
+                        myData.splice(index, 1);
+                    }
+                    oTr.remove();
+                });
+
+                //copy
+                var clipboard = new Clipboard('a.copy', {
+                    text: function () {
+                        var str = '';
+                        $('.list tr').each(function (i) {
+                            var k = $(this).find('input').eq(0).val();
+                            var v = $(this).find('input').eq(1).val();
+                            str += k + '  ' + v + '\n';
+                        });
+                        return str;
+                    }
+                });
+                clipboard.on('success', function (e) {
+                    alert("复制成功");
+                });
+                clipboard.on('error', function (e) {
+                    alert("复制失败");
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
