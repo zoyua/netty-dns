@@ -2,7 +2,7 @@ This is a simple netty project use for modify your hosts file, You can make chan
 
 ## Demo
 
-
+![demo image](https://github.com/zoyua/netty-dns/blob/master/demo.png)
 
 ## Introduction
 
